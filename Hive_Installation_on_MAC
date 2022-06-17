@@ -1,0 +1,149 @@
+Hive Installation on MAC
+
+Pre-requisite:
+Validate Hadoop using hadoop version.if not present, please complete it(Hadoop_Installation_on_MAC).
+
+Step 1:Installing Hive using brew
+brew install hive
+
+
+Step 2:Configuring Hive
+a)Updating user bash_profile -Setting up $HIVE_HOME, $HIVE_CONF_DIR and $HIVE_VERSION environment variables
+echo '# Adding for Hive Installation' >>~/.bash_profile
+echo 'export HIVE_VERSION=3.0.0' >>~/.bash_profile
+echo 'export HIVE_HOME=/usr/local/Cellar/hive/3.0.0/libexec' >>~/.bash_profile
+echo 'export HIVE_CONF_DIR=$HIVE_HOME/conf' >>~/.bash_profile
+echo 'export PATH=$HIVE_HOME/bin:$PATH' >>~/.bash_profile
+source .bash_profile
+
+
+Step 3:Configuring the Metastore
+To configure the hive metastore, I’ll be using MySQL.
+a)Mysql Setup
+## Install MySQL using brew
+brew install mysql
+
+## Start the MySQL service 
+mysql.server start
+
+## Open Terminal and execute the following command to set the root password
+mysqladmin -u root password 'bhagat'
+
+
+b)MySQL JDBC Driver
+Setup the MySQL JDBC driver
+## Folder Creation where the mysql data resides
+mkdir /Users/bhagat/Data/appData/mysql
+mkdir /Users/bhagat/Data/appData/mysql/jars
+
+## Download(mysql-connector-java-5.1.47.tar.gz) & copy it to /Users/bhagat/Data/appData/mysql/jars.
+cp /Users/bhagat/Downloads/mysql-connector-java-5.1.47.tar.gz /Users/bhagat/Data/appData/mysql/jars/
+
+## Execute following commands
+cd ~/Data/appData/mysql/jars
+tar -zxvf mysql-connector-java-5.1.47.tar.gz
+cd mysql-connector-java-5.1.47
+sudo cp mysql-connector-java-5.1.47.jar /Library/Java/Extensions/
+sudo chmod 777 /Library/Java/Extensions/mysql-connector-java-5.1.47.jar
+
+
+c)Create a database in MySQL
+## Open Terminal and execute
+mysql -u root -p
+Enter password:
+
+## Run following queries
+CREATE DATABASE hive;
+USE hive;
+CREATE USER 'bhagat'@'localhost' IDENTIFIED BY 'bhagat';
+GRANT ALL PRIVILEGES ON *.* TO 'bhagat'@'localhost' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
+CREATE USER 'hiveuser'@'localhost' IDENTIFIED BY 'hivepassword'; 
+GRANT ALL PRIVILEGES ON *.* TO 'hiveuser'@'localhost' WITH GRANT OPTION;
+flush privileges;
+quit;
+
+
+Step 4:Create/Edit hive-site.xml
+## Run following commands on Terminal
+cd $HIVE_CONF_DIR
+echo '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?><!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+   -->
+
+<configuration>
+  <property>
+    <name>javax.jdo.option.ConnectionURL</name>
+    <value>jdbc:mysql://localhost:3306/hive?createDatabaseIfNotExist=true&amp;useSSL=false</value>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionDriverName</name>
+    <value>com.mysql.jdbc.Driver</value>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionUserName</name>
+    <value>hiveuser</value>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionPassword</name>
+    <value>hivepassword</value>
+  </property>
+  <property>
+    <name>hive.metastore.uris</name>
+    <value>thrift://localhost:9083</value>
+  </property>
+  <property>
+    <name>hive.cli.print.current.db</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>hive.cli.print.header</name>
+    <value>true</value>
+  </property>
+</configuration>' >hive-site.xml
+
+
+Step 5:Script to start HiveServer2 and HiveMetastore services
+## Folder Creation where the mysql data resides
+mkdir /Users/bhagat/Data/appData/hive
+mkdir /Users/bhagat/Data/appData/hive/scripts
+
+## Download(run-hive.sh) & copy it to /Users/bhagat/Data/appData/hive/scripts
+cd /Users/bhagat/Data/appData/hive/scripts
+## To Run HiveServer2 and HiveMetaStore services
+run-hive.sh start
+## To Stop HiveServer2 and HiveMetaStore services
+run-hive.sh stop
+
+
+Step 6:Operating Hive
+## Using Hive Shell
+Once the HiveServer2 and HiveMetaStore services are up and running, 
+you can get into Hive CLI to access and query the tables by using the hive command on the terminal.
+hive
+show databases;
+show tables;
+
+## Using Beeline
+beeline -u jdbc:hive2://localhost:10000/default -n hiveuser
+or
+beeline -u jdbc:hive2:// -n hiveuser
+
+Note: Make sure Hadoop Services are up using stop-all.sh
+
+
+

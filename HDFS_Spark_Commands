@@ -1,0 +1,45 @@
+HDFS & Spark-shell Commands
+
+Pre-requisite:
+## Hadoop-services up
+start-all.sh
+## HiveServer2 and HiveMetaStore services up
+cd /Users/bhagat/Data/appData/hive/scripts
+run-hive.sh start
+
+
+Step 1:Download csv Data to Local using curl & rename it dataMSDUseCase.csv.
+curl -cO https://chronicdata.cdc.gov/views/735e-byxc/rows.csv > /Users/bhagat/Downloads/dataMSDUseCase.csv
+
+
+Step 2:Ingest dataMSDUseCase.csv to HDFS
+## HDFS Data Directory Creation
+hdfs dfs -mkdir /data
+
+## Ingestion to HDFS using put command & give permissions.
+hdfs dfs -put -f /Users/bhagat/Downloads/dataMSDUseCase.csv /data/
+hdfs dfs -chmod -R 777 /data/dataMSDUseCase.csv
+
+
+Step 3:Calculation & Storage to Hive using interactive shell i.e spark-shell
+## Open a Terminal and run the following command
+spark-shell
+
+## Create Spark DataFrame to load data from HDFS
+val dataMSDUseCaseDF = spark.read.option("inferSchema", "true").option("header","true").csv("hdfs://localhost:9000//data/dataMSDUseCase.csv")
+
+## Ingesting Data to Hive table(msdusecase.msd_usecase_data) in ORC Format
+dataMSDUseCaseDF.write.mode("Overwrite").format("ORC").insertInto("msdusecase.msd_usecase_data")
+
+
+## Average of each Question’s "Data_Value" by year for all age groups - Calculation & Ingesting to Hive table(msdusecase.first_query_output)
+val firstQueryOutputDF = dataMSDUseCaseDF.groupBy(dataMSDUseCaseDF("Question"),dataMSDUseCaseDF("YearStart"),dataMSDUseCaseDF("Age(months)")).agg(avg(dataMSDUseCaseDF("Data_Value"))).withColumnRenamed("avg(Data_Value)","avg_data_value").orderBy(dataMSDUseCaseDF("Question"),dataMSDUseCaseDF("YearStart"),dataMSDUseCaseDF("Age(months)"))
+
+firstQueryOutputDF.write.mode("Overwrite").format("ORC").insertInto("msdusecase.first_query_output")
+
+
+## Average of each Question’s "Data_Value" by year for female only - Calculation & Ingesting to Hive table(msdusecase.second_query_output)
+val secondQueryOutputDF = dataMSDUseCaseDF.groupBy(dataMSDUseCaseDF("Question"),dataMSDUseCaseDF("YearStart"),dataMSDUseCaseDF("Gender")).agg(avg(dataMSDUseCaseDF("Data_Value"))).where("Gender == 'Female'").withColumnRenamed("avg(Data_Value)","avg_data_value").orderBy(dataMSDUseCaseDF("Question"),dataMSDUseCaseDF("YearStart"))
+
+secondQueryOutputDF.write.mode("Overwrite").format("ORC").insertInto("msdusecase.second_query_output")
+

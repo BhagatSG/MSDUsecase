@@ -1,0 +1,151 @@
+Hadoop Installation on MAC
+
+Pre-requisite:
+Validate Java(Java 8 is recommended) using java -version.if not present, install(https://tecadmin.net/install-java-macos/)
+
+Step 1:Installing Hadoop using brew
+brew install hadoop
+
+Note:The home directory for hadoop is: /usr/local/Cellar/hadoop/3.1.0/libexec/, 
+while the configuration files are located at /usr/local/Cellar/hadoop/3.1.0/libexec/etc/hadoop/
+
+
+Step 2:Configuring Hadoop
+a)Updating user bash_profile -Setting up $HADOOP_HOME, $HADOOP_CONF_DIR and $HADOOP_VERSION environment variables
+echo '# Adding for Hadoop Installation' >>~/.bash_profile
+echo 'export HADOOP_VERSION=3.1.0' >>~/.bash_profile
+echo 'export HADOOP_HOME=/usr/local/Cellar/hadoop/3.1.0/libexec' >>~/.bash_profile
+echo 'export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop/' >>~/.bash_profile
+echo 'export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH' >>~/.bash_profile
+source .bash_profile
+  
+
+b)Edit hadoop-env.sh
+cd $HADOOP_CONF_DIR
+vi hadoop-env.sh
+
+## Change this:
+export JAVA_HOME=
+## To
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_101.jdk/Contents/Home
+
+
+c)Edit core-site.xml
+cd $HADOOP_CONF_DIR
+vi core-site.xml
+
+## Add the following within the configuration tags
+<property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://localhost:9000</value>
+</property>
+
+
+d)Edit hdfs-site.xml
+cd $HADOOP_CONF_DIR
+vi hdfs-site.xml
+
+## Folder Creation where the HDFS data resides
+mkdir /Users/bhagat/Data
+mkdir /Users/bhagat/Data/appData
+mkdir /Users/bhagat/Data/appData/hadoop
+mkdir /Users/bhagat/Data/appData/hadoop/dfs
+mkdir /Users/bhagat/Data/appData/hadoop/dfs/name
+mkdir /Users/bhagat/Data/appData/hadoop/dfs/data/
+
+## Add the following within the configuration tags
+<property>
+    <name>dfs.replication</name>
+    <value>1</value>
+</property>
+<property>
+  <name>dfs.namenode.name.dir</name>
+  <value>file:/Users/bhagat/Data/appData/hadoop/dfs/name</value>   
+</property>   
+<property>
+  <name>dfs.datanode.data.dir</name>
+  <value>file:/Users/bhagat/Data/appData/hadoop/dfs/data</value>   
+</property>
+
+
+e)Edit mapred-site.xml
+cd $HADOOP_CONF_DIR
+vi mapred-site.xml
+
+## Add the following within the configuration tags
+<property>
+  <name>mapreduce.framework.name</name>
+  <value>yarn</value>
+</property>
+<property>
+  <name>mapreduce.reduce.memory.mb</name>
+  <value>256</value>
+</property>
+<property>
+  <name>mapreduce.map.memory.mb</name>
+  <value>256</value>
+</property>
+
+
+f)Edit yarn-site.xml
+cd $HADOOP_CONF_DIR
+vi yarn-site.xml
+
+## Add the following within the configuration tags
+<property>
+  <name>yarn.nodemanager.aux-services</name>
+  <value>mapreduce_shuffle</value>
+</property>
+<property>
+  <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+  <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+</property>
+<property>
+  <name>yarn.nodemanager.disk-health-checker.max-disk-utilization-per-disk-percentage</name>
+  <value>98.0</value>
+</property>
+<property>
+  <name>yarn.nodemanager.resource.memory-mb</name>
+  <value>12288</value>
+</property>
+<property>
+  <name>yarn.scheduler.minimum-allocation-mb</name>
+  <value>256</value>
+</property>
+
+
+Step 3:Operating Hadoop
+#Format the namenode
+hadoop namenode -format
+
+
+Step 4:Enable Remote Login
+ssh-keygen -t rsa
+
+
+Step 5:Authorize SSH Keys
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+chmod og-wx ~/.ssh/authorized_keys
+
+
+Step 6:Start Hadoop Services
+start-all.sh
+
+
+Step 7: Verify Namenode UI & Resource Manager UI
+Namenode UI - http://localhost:9870/
+Resource Manager UI - http://localhost:8088/cluster
+
+
+Step 8:Validate Installation
+hdfs dfs -ls /
+hdfs dfsadmin -report
+
+
+Step 9:Stop hadoop Services
+stop-all.sh
+
+
+  
+  
+

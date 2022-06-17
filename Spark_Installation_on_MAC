@@ -1,0 +1,35 @@
+Spark Installation on MAC
+
+Pre-requisite:
+Validate Java(Java 8 is recommended) using java -version.if not present, install(https://tecadmin.net/install-java-macos/)
+Use Hive with Spark, install Hive(Hive_Installation_on_MAC) first.
+
+Step 1:Installing Spark
+brew install apache-spark
+
+
+Step 2:Configuring Spark
+a)Updating user bash_profile -Setting up $SPARK_HOME, $SPARK_CONF_DIR, $SPARK_JARS_DIR and $SPARK_VERSION environment variables
+echo '# Adding for Spark Installation' >>~/.bash_profile
+echo 'export SPARK_VERSION=2.3.1' >>~/.bash_profile
+echo 'export SPARK_HOME=/usr/local/Cellar/apache-spark/2.3.1/libexec' >>~/.bash_profile
+echo 'export SPARK_CONF_DIR=$SPARK_HOME/conf' >>~/.bash_profile
+echo 'export SPARK_JARS_DIR=$SPARK_HOME/jars' >>~/.bash_profile
+echo 'export PATH=$SPARK_HOME/bin:$PATH' >>~/.bash_profile
+source .bash_profile
+
+
+Step 3:Using Hive with Spark
+## To use Hive databases and tables in spark, copy the hive-site.xml into the $SPARK_CONF_DIR
+## and also copy the hive metastore JDBC driver i.e. in my case the MySQL JDBC driver into the $SPARK_JARS_DIR
+cp $HIVE_CONF_DIR/hive-site.xml $SPARK_CONF_DIR/
+cp /Library/Java/Extensions/mysql-connector-java-5.1.47.jar $SPARK_JARS_DIR/
+
+
+Step 4:Operating Spark
+## Validate Spark Installation
+spark-shell
+
+## Validate Spark integration with hive
+spark-shell
+spark.sql("show databases").show()

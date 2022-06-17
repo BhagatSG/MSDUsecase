@@ -1,0 +1,69 @@
+Hive Table Creation Script:
+
+Pre-requisite:
+## Hadoop-services up
+start-all.sh
+## HiveServer2 and HiveMetaStore services up
+cd /Users/bhagat/Data/appData/hive/scripts
+run-hive.sh start
+
+
+Step 1:Using Hive Shell
+## Open terminal & Execute follwoing queries
+hive
+
+create database msdusecase;
+
+use msdusecase;
+
+CREATE EXTERNAL TABLE `msdusecase.msd_usecase_data`(
+  `yearstart` int,
+  `yearend` int,
+  `locationabbr` string,
+  `locationdesc` string,
+  `datasource` string,
+  `class` string,
+  `topic` string,
+  `question` string,
+  `data_value_unit` string,
+  `data_value_type` string,
+  `data_value` double,
+  `data_value_alt` double,
+  `data_value_footnote_symbol` string,
+  `data_value_footnote` string,
+  `low_confidence_limit` double,
+  `high_confidence_limit` double,
+  `sample_size` int,
+  `total` string,
+  `age_in_months` string,
+  `gender` string,
+  `race_ethnicity` string,
+  `geolocation` string,
+  `classid` string,
+  `topicid` string,
+  `questionid` string,
+  `datavaluetypeid` string,
+  `locationid` string,
+  `stratificationcategory1` string,
+  `stratification1` string,
+  `stratificationcategoryid1` string,
+  `stratificationid1` string)
+stored as ORC
+Location "/hive/msd_usecase_data";
+
+CREATE EXTERNAL TABLE `msdusecase.first_query_output`(
+  `question` string,
+  `yearstart` int,
+  `age_in_months` string,
+  `avg_data_value` double)
+stored as ORC
+Location "/hive/first_query_output";
+
+
+CREATE EXTERNAL TABLE `msdusecase.second_query_output`(
+  `question` string,
+  `yearstart` int,
+  `gender` string,
+  `avg_data_value` double)
+stored as ORC
+Location "/hive/second_query_output";
