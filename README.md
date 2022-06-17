@@ -28,7 +28,7 @@ Step 5:Running HDFS & Spark Commands for ingestion & calculation\
 
 Step 6:Data Visualisation using Springboot-Hive Integration\
 	I have created springboot-hive integration Web UI for Data Visualisation.\
-	Here it is : https://github.com/BhagatGhugtyal/UseCaseMSD
+	Here it is : [https://github.com/BhagatGhugtyal/UseCaseMSD](https://github.com/BhagatSG/UsecaseMSD)
 
 Note : I have also attached run-hive.sh,mysql-connector-java-5.1.47.tar.gz etc 
 
